@@ -20,8 +20,5 @@
     "url": "https://github.com/shobhitjagga/shobhitjagga.github.io/issues"
   },
   "homepage": "https://github.com/shobhitjagga/shobhitjagga.github.io#readme"
-  "engines": {
-    "node": "11.x"
-  }
-
+  
 }
