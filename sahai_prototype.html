@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShikshaBot — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Google Sans','Noto Sans Devanagari',sans-serif;
+  background:#e8ecef;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;
+  padding:10px 20px 8px;gap:0;
+}
+.step-nav{
+  display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap;justify-content:center;
+  flex-shrink:0;
+}
+.step-nav button{
+  background:#fff;border:1.5px solid #ccc;padding:5px 14px;
+  border-radius:20px;cursor:pointer;font-family:inherit;font-size:12.5px;color:#555;
+  transition:.15s;
+}
+.step-nav button.active{background:#1a5c4e;color:#fff;border-color:#1a5c4e;}
+.step-nav button:hover:not(.active){border-color:#1a5c4e;color:#1a5c4e;}
+.screen-label{
+  text-align:center;margin-bottom:7px;
+  font-size:10.5px;font-weight:600;letter-spacing:1.1px;
+  color:#5c7a74;text-transform:uppercase;flex-shrink:0;
+}
+.phone-outer{
+  width:365px;flex-shrink:0;
+  background:linear-gradient(145deg,#d4d8db,#c8ccce);
+  border-radius:44px;padding:10px;
+  box-shadow:0 18px 55px rgba(0,0,0,.22),inset 0 0 0 1px rgba(255,255,255,.5);
+  position:relative;
+}
+.phone-inner{
+  width:100%;border-radius:36px;overflow:hidden;
+  background:#ece5dd;display:flex;flex-direction:column;
+  height:min(650px,calc(100vh - 108px));position:relative;
+}
+.status-bar{
+  background:#1a5c4e;padding:7px 18px 0;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+}
+.status-time{color:#fff;font-size:12px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:5px;align-items:center;}
+.wa-header{
+  background:#1a5c4e;padding:5px 14px 10px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.wa-back{color:#fff;font-size:20px;line-height:1;cursor:pointer;}
+.wa-avatar{
+  width:36px;height:36px;border-radius:50%;background:#2d7a63;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.wa-info{flex:1;}
+.wa-name{color:#fff;font-size:15px;font-weight:600;}
+.wa-sub{color:rgba(255,255,255,.75);font-size:11px;}
+.wa-actions{display:flex;gap:14px;color:rgba(255,255,255,.9);font-size:16px;}
+.chat-area{
+  flex:1;overflow-y:auto;padding:8px 10px 6px;
+  background:#ece5dd;scroll-behavior:smooth;min-height:0;
+}
+.chat-area::-webkit-scrollbar{width:3px;}
+.chat-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px;}
+.date-chip{text-align:center;margin:4px 0 8px;}
+.date-chip span{
+  background:rgba(255,255,255,.85);color:#666;
+  font-size:11px;padding:3px 12px;border-radius:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);
+}
+.msg-row{display:flex;margin:3px 0;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.msg-row.bot{justify-content:flex-start;}
+.msg-row.user{justify-content:flex-end;}
+.bubble{
+  max-width:82%;border-radius:12px;
+  font-size:13px;line-height:1.5;position:relative;
+  word-break:break-word;font-family:'Google Sans','Noto Sans Devanagari',sans-serif;
+  min-width:68px;
+}
+.bubble.bot{
+  background:#fff;border-top-left-radius:3px;
+  padding:7px 11px 18px;box-shadow:0 1px 2px rgba(0,0,0,.12);
+}
+.bubble.user{
+  background:#d9f7be;border-top-right-radius:3px;
+  padding:7px 11px 18px;box-shadow:0 1px 2px rgba(0,0,0,.1);
+}
+.bubble .ts{position:absolute;bottom:3px;right:8px;font-size:10px;color:#aaa;}
+.bubble.user .ts::after{content:' ✓✓';color:#53bdeb;}
+.bi-sub{font-size:12px;color:#888;font-style:italic;}
+.sec-header{
+  color:#1a6b59;font-weight:700;font-size:13px;
+  margin-bottom:5px;display:flex;align-items:center;gap:5px;
+}
+.num-list{padding:1px 0;}
+.num-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12.5px;}
+.num-circle{
+  min-width:21px;height:21px;border-radius:50%;
+  background:#1a5c4e;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;
+}
+.bullet-item{display:flex;gap:6px;margin:4px 0;font-size:13px;line-height:1.45;}
+.bullet-item .bk{font-weight:700;color:#1a5c4e;flex-shrink:0;}
+.quote-block{
+  border-left:3px solid #e8a020;background:#fffaec;
+  padding:6px 9px;border-radius:0 6px 6px 0;
+  margin:4px 0 6px;font-style:italic;color:#333;font-size:12.5px;line-height:1.55;
+}
+.board-note{font-size:12.5px;margin-top:5px;color:#222;}
+.board-note strong{color:#111;}
+.concept-list{list-style:none;padding:2px 0;}
+.concept-list li{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;color:#222;}
+.concept-list li::before{content:'○';font-size:12px;color:#555;flex-shrink:0;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.tag{
+  background:#e0f5f1;color:#1a6b59;
+  padding:4px 9px;border-radius:13px;
+  font-size:11.5px;font-weight:600;border:1px solid #b2dfd5;
+}
+.case-list{padding:2px 0;}
+.case-item{padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12.5px;line-height:1.45;}
+.case-item:last-child{border-bottom:none;}
+.case-label{font-weight:700;color:#1a6b59;}
+.sel-prompt{font-style:italic;font-weight:700;color:#1a5c4e;font-size:13px;margin-top:5px;line-height:1.45;}
+.source-line{
+  font-size:10.5px;color:#888;font-style:italic;
+  margin-top:6px;padding-top:5px;border-top:1px solid #eee;
+}
+.insight-card{
+  background:#f0faf7;border:1px solid #b2dfd5;border-radius:10px;
+  padding:10px 12px;margin:6px 0;
+}
+.insight-label{font-size:11px;font-weight:700;color:#1a6b59;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+.reply-btns{
+  display:flex;flex-direction:column;gap:5px;
+  margin:3px 0 5px;animation:fadeIn .2s ease;
+}
+.reply-btn{
+  background:#fff;border:1.5px solid #1a5c4e;
+  color:#1a5c4e;padding:9px 14px;
+  border-radius:8px;font-size:13px;font-weight:600;
+  font-family:inherit;cursor:pointer;text-align:center;transition:.15s;
+}
+.reply-btn:hover{background:#f0f9f7;}
+.reply-btn:active{background:#e0f5ef;transform:scale(.98);}
+.reply-btn.selected{background:#1a5c4e;color:#fff;cursor:default;}
+.cta-btn{
+  display:block;width:100%;background:#1a5c4e;color:#fff;
+  border:none;padding:11px;border-radius:10px;
+  font-size:13.5px;font-weight:700;font-family:inherit;
+  cursor:pointer;text-align:center;margin:5px 0 2px;transition:.15s;
+}
+.cta-btn:hover{background:#154f43;}
+.cta-btn-note{text-align:center;font-size:11px;color:#888;margin-top:3px;}
+.input-bar{
+  background:#f0f0f0;padding:7px 10px;
+  display:flex;align-items:center;gap:9px;flex-shrink:0;
+}
+.input-emoji{font-size:20px;color:#888;cursor:pointer;}
+.input-field{
+  flex:1;background:#fff;border:none;border-radius:20px;
+  padding:8px 12px;font-size:13px;font-family:inherit;outline:none;color:#333;
+}
+.input-actions{display:flex;gap:10px;color:#888;font-size:18px;}
+.mic-btn{
+  width:38px;height:38px;border-radius:50%;background:#1a5c4e;
+  border:none;color:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.home-indicator{
+  height:20px;background:#1a5c4e;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.home-bar{width:88px;height:3px;background:rgba(255,255,255,.4);border-radius:2px;}
+.form-overlay{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.45);
+  display:none;flex-direction:column;justify-content:flex-end;
+  z-index:100;border-radius:36px;overflow:hidden;
+}
+.form-overlay.open{display:flex;}
+.form-sheet{
+  background:#fff;border-radius:22px 22px 0 0;
+  padding:14px 18px 20px;animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.form-sheet-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.form-sheet-avatar{
+  width:33px;height:33px;border-radius:50%;background:#1a5c4e;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;flex-shrink:0;
+}
+.form-sheet-title{font-size:16px;font-weight:700;color:#111;flex:1;}
+.form-sheet-close{
+  font-size:18px;color:#888;cursor:pointer;
+  background:none;border:none;font-family:inherit;line-height:1;padding:4px;
+}
+.form-divider{height:1px;background:#eee;margin:8px 0 12px;}
+.form-field{margin-bottom:13px;}
+.form-label{font-size:13px;color:#333;margin-bottom:6px;display:block;}
+.form-select{
+  width:100%;padding:10px 12px;
+  border:1.5px solid #1a5c4e;border-radius:10px;
+  font-size:13.5px;font-family:inherit;color:#111;
+  background:#fff;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%231a5c4e' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;outline:none;
+}
+.form-settings-note{text-align:center;font-size:11px;color:#999;margin-bottom:11px;}
+.form-submit{
+  width:100%;background:#1a5c4e;color:#fff;
+  border:none;border-radius:10px;padding:12px;
+  font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s;
+}
+.form-submit:hover{background:#154f43;}
+.form-powered{text-align:center;font-size:10px;color:#bbb;letter-spacing:1px;text-transform:uppercase;margin-top:9px;}
+.typing-row{display:flex;margin:3px 0;}
+.typing-bubble{
+  background:#fff;border-radius:12px;border-top-left-radius:3px;
+  padding:9px 13px;display:flex;gap:4px;align-items:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.1);
+}
+.typing-bubble span{
+  width:6px;height:6px;background:#aaa;border-radius:50%;
+  animation:bounce 1.2s infinite;
+}
+.typing-bubble span:nth-child(2){animation-delay:.2s;}
+.typing-bubble span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.screen-section{display:none;}
+.screen-section.active{display:block;}
+</style>
+</head>
+<body>
+
+<div class="step-nav">
+  <button class="active" onclick="showScreen('s1')">1. Onboarding</button>
+  <button onclick="showScreen('s2')">2. Lesson Plan</button>
+  <button onclick="showScreen('s3')">3. Feedback</button>
+  <button onclick="showScreen('s4')">4. Teacher Query</button>
+</div>
+<div class="screen-label" id="screenLabel">FLOW 1: ONBOARDING</div>
+
+<div class="phone-outer">
+<div class="phone-inner">
+
+  <div class="status-bar">
+    <span class="status-time" id="statusTime">9:00</span>
+    <span class="status-icons">📶 WiFi 🔋</span>
+  </div>
+  <div class="wa-header">
+    <span class="wa-back">←</span>
+    <div class="wa-avatar">🌱</div>
+    <div class="wa-info">
+      <div class="wa-name">ShikshaBot 🌱</div>
+      <div class="wa-sub">AI Teaching Assistant</div>
+    </div>
+    <div class="wa-actions">📹 📞 ⋮</div>
+  </div>
+
+  <div class="chat-area" id="chat">
+    <div class="date-chip"><span>Monday, 26 May</span></div>
+
+    <!-- ════════════════════════════════════════════
+         FLOW 1 — ONBOARDING  (merged 3-step flow)
+         ════════════════════════════════════════════ -->
+    <div class="screen-section active" id="s1-msgs">
+
+      <div class="msg-row user">
+        <div class="bubble user">Hi<span class="ts">9:00</span></div>
+      </div>
+      <div class="msg-row bot">
+        <div class="bubble bot">
+          नमस्ते / Hello! 👋<br>
+          ShikshaBot में आपका स्वागत है<br>
+          <span class="bi-sub">Welcome to ShikshaBot 🌱</span><br><br>
+          Setup में सिर्फ 10 seconds लगेंगे<br>
+          <span class="bi-sub">Takes just 10 seconds:</span>
+          <span class="ts">9:00</span>
+        </div>
+      </div>
+
+      <!-- Phase A: CTA before form -->
+      <div id="s1-initial">
+        <button class="cta-btn" onclick="openForm()">⚙️ Setup करें / Let's Setup →</button>
+        <div class="cta-btn-note">Class · Subject · Language — choose once</div>
+      </div>
+
+      <!-- Phase B: after form submit -->
+      <div id="s1-reg" style="display:none">
+        <div class="msg-row user">
+          <div class="bubble user">✓ Setup complete<span class="ts">9:01</span></div>
+        </div>
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <span style="font-size:24px;">🎉</span>
+              <span style="font-size:14.5px;font-weight:700;color:#1a5c4e;" id="reg-headline">You're all set!</span>
+            </div>
+            <div style="background:#f0faf7;border:1px solid #b2dfd5;border-radius:10px;padding:9px 11px;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #e0f0ec;">
+                <span>📚</span><span style="color:#555;font-size:12px;">Class</span>
+                <span style="margin-left:auto;font-weight:600;font-size:12px;color:#1a5c4e;" id="reg-class-display">6 – 8 (Middle)</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #e0f0ec;">
+                <span>📖</span><span style="color:#555;font-size:12px;">Subject</span>
+                <span style="margin-left:auto;font-weight:600;font-size:12px;color:#1a5c4e;" id="reg-subject-display">Science</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+                <span>🗣</span><span style="color:#555;font-size:12px;">Language</span>
+                <span style="margin-left:auto;font-weight:600;font-size:12px;color:#1a5c4e;" id="reg-lang-display">Hindi</span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:#aaa;font-style:italic;text-align:center;">Change anytime: /settings</div>
+            <span class="ts">9:01</span>
+          </div>
+        </div>
+        <div class="typing-row" id="reg-typing">
+          <div class="typing-bubble"><span></span><span></span><span></span></div>
+        </div>
+        <div class="msg-row bot" id="reg-prompt" style="display:none">
+          <div class="bubble bot" id="reg-prompt-bubble"><span class="ts">9:02</span></div>
+        </div>
+        <button class="cta-btn" id="reg-cta" style="display:none;margin-top:8px;" onclick="showScreen('s2')">
+          📚 See your first Lesson Plan →
+        </button>
+      </div>
+
+    </div><!-- s1-msgs -->
+
+    <!-- ════════════════════════════════════════════
+         FLOW 2 — LESSON PLAN  (interactive + subject-aware)
+         ════════════════════════════════════════════ -->
+    <div class="screen-section" id="s2-msgs">
+
+      <div class="msg-row user">
+        <div class="bubble user" id="lp-teacher-request">
+          🎙 Class 9 Science Ch.13 'Why Do We Fall Ill' — 45 min plan
+          <span class="ts">10:07</span>
+        </div>
+      </div>
+
+      <!-- Plan content: shown immediately -->
+      <div id="lp-plan-block">
+
+        <!-- Science variant -->
+        <div class="lp-variant" id="lp-science">
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              Building your 45-min roadmap for <strong><em>Why Do We Fall Ill</em></strong> (NCERT Class 9, Ch.13). Focusing on foundational health vs. disease today.
+              <span class="ts">10:08</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="num-list">
+                <div class="num-item"><div class="num-circle">1</div><span>Opening: SEL Check-in (5 min)</span></div>
+                <div class="num-item"><div class="num-circle">2</div><span>Core: Disease Detectives + Definitions (25 min)</span></div>
+                <div class="num-item"><div class="num-circle">3</div><span>Closing: Exit Reflection (15 min)</span></div>
+              </div>
+              <span class="ts">10:08</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">🧘 5-min Opening — SEL Check-in</div>
+              <div class="bullet-item"><span class="bk">Body Scan:</span><span>Feet flat, shoulders relaxed.</span></div>
+              <div class="bullet-item"><span class="bk">Box Breathing:</span><span>Inhale 4s · Hold 4s · Exhale 4s.</span></div>
+              <div class="bullet-item"><span class="bk">Energy Meter:</span><span>"High or low energy today?" — quick show of hands.</span></div>
+              <div class="source-line">NCF-SE 2023 · SEL Domain: Physical Well-being</div>
+              <span class="ts">10:09</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">⏱ 5–12 min: Hook + 2 Key Definitions</div>
+              <div class="quote-block">
+                "Health = complete physical, mental, and social well-being."<br>
+                "Disease = 'dis-ease' — literally being uncomfortable."
+              </div>
+              <div class="board-note">Board Note: T-chart — <strong>Healthy vs. Disease-Free</strong> (they are NOT the same).</div>
+              <span class="ts">10:10</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">📌 Concepts to Cover</div>
+              <div class="tag-row">
+                <span class="tag">Pathogens</span>
+                <span class="tag">Vector</span>
+                <span class="tag">Immunity</span>
+                <span class="tag">Acute vs. Chronic</span>
+              </div>
+              <span class="ts">10:11</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">👥 Disease Detectives (20–35 min)</div>
+              <div class="case-list">
+                <div class="case-item"><span class="case-label">Case 1: Ramu.</span> Heavy cough, 3 days after rain. → Acute</div>
+                <div class="case-item"><span class="case-label">Case 2: Seema.</span> Tiredness + pale skin for 6 months. → Chronic</div>
+                <div class="case-item"><span class="case-label">Case 3: Ajay.</span> Fever + spots after contact with sick friend. → Infectious</div>
+                <div class="case-item"><span class="case-label">Case 4: Priya.</span> High BP, runs in the family. → Non-infectious</div>
+              </div>
+              <div class="sel-prompt">SEL prompt: "How can we support Seema without making her feel different?"</div>
+              <span class="ts">10:13</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">⏱ Exit Reflection (35–42 min)</div>
+              <ol style="padding-left:16px;margin-top:4px;color:#333;font-size:12.5px;line-height:1.7;">
+                <li>Name one Chronic disease.</li>
+                <li>Why is "healthy" not the same as "disease-free"?</li>
+                <li>Give one Contributory Cause for diarrhea.</li>
+              </ol>
+              <div class="source-line">Aligned with PARAKH assessment frameworks · NCERT Ch.13</div>
+              <span class="ts">10:15</span>
+            </div>
+          </div>
+        </div><!-- lp-science -->
+
+        <!-- Math variant -->
+        <div class="lp-variant" id="lp-math" style="display:none">
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              Building your 45-min roadmap for <strong><em>Algebraic Expressions &amp; Identities</em></strong> (NCERT Class 8, Ch.9). Real-world equation-solving with SEL integration.
+              <span class="ts">10:08</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="num-list">
+                <div class="num-item"><div class="num-circle">1</div><span>Opening: Number Mood Check-in (5 min)</span></div>
+                <div class="num-item"><div class="num-circle">2</div><span>Core: Like Terms + Expanding Identities (25 min)</span></div>
+                <div class="num-item"><div class="num-circle">3</div><span>Activity: Real-World Algebra Problems (15 min)</span></div>
+              </div>
+              <span class="ts">10:08</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">🧘 5-min Opening — Number Check-in</div>
+              <div class="bullet-item"><span class="bk">Ask:</span><span>"On a scale of 0–10, what's your energy today?"</span></div>
+              <div class="bullet-item"><span class="bk">Box Breathing:</span><span>Inhale 4s · Hold 4s · Exhale 4s — then calculate!</span></div>
+              <div class="bullet-item"><span class="bk">Bridge:</span><span>"Math is like emotions — when stuck, pause and breathe."</span></div>
+              <div class="source-line">NCF-SE 2023 · SEL Domain: Emotion Regulation</div>
+              <span class="ts">10:09</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">⏱ 5–15 min: Like Terms + Expanding</div>
+              <div class="quote-block">
+                "Like terms share the same variable and power."<br>
+                "3x + 5x = 8x — same as 3 mangoes + 5 mangoes = 8 mangoes!"
+              </div>
+              <div class="board-note">Board: Draw a square to prove (a+b)² = a²+2ab+b² <em>visually</em>.</div>
+              <span class="ts">10:10</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">📌 Key Identities</div>
+              <div class="tag-row">
+                <span class="tag">(a+b)²</span>
+                <span class="tag">(a-b)²</span>
+                <span class="tag">(a+b)(a-b)</span>
+                <span class="tag">Like Terms</span>
+              </div>
+              <span class="ts">10:11</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">🛒 Real-World Algebra (20–35 min)</div>
+              <div class="case-list">
+                <div class="case-item"><span class="case-label">Problem 1: Market.</span> Mangoes = x, bananas = y. If 3x + 2y = 50, find each cost. (Linear)</div>
+                <div class="case-item"><span class="case-label">Problem 2: Trip.</span> Speed = (2a+4) km/h, Time = (a−1) hrs. Find distance using identity.</div>
+                <div class="case-item"><span class="case-label">Problem 3: Garden.</span> Square plot, side = (x+3) m. Expand to find area.</div>
+              </div>
+              <div class="sel-prompt">SEL: "When the equation isn't working — take 3 breaths, then try again. Struggle = growth."</div>
+              <span class="ts">10:13</span>
+            </div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">⏱ Exit Reflection (38–45 min)</div>
+              <ol style="padding-left:16px;margin-top:4px;color:#333;font-size:12.5px;line-height:1.7;">
+                <li>Expand (x+5)² using the identity.</li>
+                <li>Simplify: 4a² + 3a – 2a + a²</li>
+                <li>What felt hardest today — and what helped you push through?</li>
+              </ol>
+              <div class="source-line">NCERT Class 8 Ch.9 · PARAKH frameworks</div>
+              <span class="ts">10:15</span>
+            </div>
+          </div>
+        </div><!-- lp-math -->
+
+        <!-- Follow-up actions -->
+        <div class="reply-btns" id="lp-fu-btns">
+          <button class="reply-btn" onclick="selectReply(this,'lp-fu-btns','lp-adjust-block')">Adjust timing ⏱</button>
+          <button class="reply-btn" onclick="selectReply(this,'lp-fu-btns','lp-hw-block')">Add a homework task 📝</button>
+          <button class="reply-btn" onclick="selectReply(this,'lp-fu-btns','lp-save-block')">Save this plan ✓</button>
+        </div>
+
+        <div id="lp-adjust-block" style="display:none">
+          <div class="msg-row user"><div class="bubble user">Adjust timing ⏱<span class="ts">10:16</span></div></div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              Tightened the check-in to 3 min — extra 2 min goes to the group debrief.
+              <div class="insight-card">
+                <div class="insight-label">Updated Plan</div>
+                Check-in 3 min &nbsp;·&nbsp; Core 27 min &nbsp;·&nbsp; Exit 15 min
+              </div>
+              <span class="ts">10:16</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="lp-hw-block" style="display:none">
+          <div class="msg-row user"><div class="bubble user">Add a homework task 📝<span class="ts">10:16</span></div></div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">📝 Suggested Homework</div>
+              NCERT Exercise 13.1: Q1–3 (due next class)<br><br>
+              <span style="font-size:12px;color:#555;">Bonus prompt: "Write one thing you did today to stay healthy."</span>
+              <div class="source-line">Encourages transfer from classroom to daily life</div>
+              <span class="ts">10:16</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="lp-save-block" style="display:none">
+          <div class="msg-row user"><div class="bubble user">Save this plan ✓<span class="ts">10:16</span></div></div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              Plan saved to your teaching history. ✓<br>
+              <span style="font-size:12px;color:#888;">Access anytime with /history · Edit with /edit-plan</span>
+              <span class="ts">10:16</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- lp-plan-block -->
+
+    </div><!-- s2-msgs -->
+
+    <!-- ════════════════════════════════════════════
+         FLOW 3 — SESSION FEEDBACK  (3-question, English)
+         ════════════════════════════════════════════ -->
+    <div class="screen-section" id="s3-msgs">
+
+      <!-- Q1 -->
+      <div class="msg-row bot">
+        <div class="bubble bot">
+          ✅ Session done! Quick 3-question feedback — it takes 60 seconds.<br><br>
+          <strong>Were all key definitions covered?</strong>
+          <span class="ts">10:40</span>
+        </div>
+      </div>
+      <div class="reply-btns" id="fb1-btns">
+        <button class="reply-btn" onclick="storeFB('q1',this,'fb1-btns','fb2-block')">✓ Yes, covered all</button>
+        <button class="reply-btn" onclick="storeFB('q1',this,'fb1-btns','fb2-block')">Partially covered</button>
+        <button class="reply-btn" onclick="storeFB('q1',this,'fb1-btns','fb2-block')">Ran out of time</button>
+      </div>
+
+      <!-- Q2 -->
+      <div id="fb2-block" style="display:none">
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            Did the group activity engage students?
+            <span class="ts">10:41</span>
+          </div>
+        </div>
+        <div class="reply-btns" id="fb2-btns">
+          <button class="reply-btn" onclick="storeFB('q2',this,'fb2-btns','fb3-block')">👍 Yes, highly engaged</button>
+          <button class="reply-btn" onclick="storeFB('q2',this,'fb2-btns','fb3-block')">Mixed — some did</button>
+          <button class="reply-btn" onclick="storeFB('q2',this,'fb2-btns','fb3-block')">👎 Struggled to engage</button>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div id="fb3-block" style="display:none">
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            Last one — how did the SEL check-in land?
+            <span class="ts">10:42</span>
+          </div>
+        </div>
+        <div class="reply-btns" id="fb3-btns">
+          <button class="reply-btn" onclick="storeFB('q3',this,'fb3-btns','fb4-block')">Students opened up</button>
+          <button class="reply-btn" onclick="storeFB('q3',this,'fb3-btns','fb4-block')">Neutral response</button>
+          <button class="reply-btn" onclick="storeFB('q3',this,'fb3-btns','fb4-block')">Skipped it today</button>
+        </div>
+      </div>
+
+      <!-- Final insight (shown after Q3) -->
+      <div id="fb4-block" style="display:none">
+        <div class="msg-row user">
+          <div class="bubble user" id="fb-teacher-summary">
+            <!-- filled dynamically -->
+            <span class="ts">10:44</span>
+          </div>
+        </div>
+        <div class="typing-row" id="fb-typing">
+          <div class="typing-bubble"><span></span><span></span><span></span></div>
+        </div>
+        <div class="msg-row bot" id="fb-final" style="display:none">
+          <div class="bubble bot">
+            <div class="insight-card">
+              <div class="insight-label">📊 Teaching Insight</div>
+              <span id="fb-insight-text"></span>
+            </div>
+            Next session: I'll adjust based on your answers above. Great work today! 🎉
+            <div class="source-line">Feedback stored · Improves your next plan</div>
+            <span class="ts">10:45</span>
+          </div>
+        </div>
+        <div class="reply-btns" id="fb-final-btns" style="display:none">
+          <button class="reply-btn" onclick="showScreen('s2')">Plan next session →</button>
+          <button class="reply-btn">Share with my mentor</button>
+          <button class="reply-btn">Done for today ✓</button>
+        </div>
+      </div>
+
+    </div><!-- s3-msgs -->
+
+    <!-- ════════════════════════════════════════════
+         FLOW 4 — TEACHER QUERY  (English, functional follow-ups)
+         ════════════════════════════════════════════ -->
+    <div class="screen-section" id="s4-msgs">
+
+      <div class="msg-row user">
+        <div class="bubble user">🎤 One student has completely withdrawn — not engaging at all<span class="ts">10:14</span></div>
+      </div>
+
+      <div class="msg-row bot">
+        <div class="bubble bot">
+          That's concerning to hear. When did this change start?
+          <span class="ts">10:14</span>
+        </div>
+      </div>
+
+      <div class="reply-btns" id="q-clarify-btns">
+        <button class="reply-btn" onclick="clarifyQ4(this,'Recent change — about 1-2 weeks ago')">Recent change (1–2 weeks)</button>
+        <button class="reply-btn" onclick="clarifyQ4(this,'Been like this for a while now')">Been like this a while</button>
+        <button class="reply-btn" onclick="clarifyQ4(this,'Not sure when it started')">Not sure</button>
+      </div>
+
+      <div id="q-response-block" style="display:none">
+
+        <div class="msg-row user">
+          <div class="bubble user" id="q-echo-bubble">Recent change — about 1-2 weeks ago<span class="ts">10:15</span></div>
+        </div>
+
+        <!-- Empathy -->
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            A sudden change almost always means something happened. Don't panic — let's work through this together, step by step. 🙏
+            <div class="source-line">📋 PARAKH 2024: sudden withdrawal is a signal, not a character trait</div>
+            <span class="ts">10:16</span>
+          </div>
+        </div>
+
+        <!-- Observe -->
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            <div class="sec-header" style="color:#b8860b;">🟡 Observe this week:</div>
+            <div style="margin-top:4px;">
+              <div style="padding:3px 0;font-size:13px;">◆&nbsp; When do they seem most alive in class?</div>
+              <div style="padding:3px 0;font-size:13px;">◆&nbsp; Talk to their closest friend — gently</div>
+              <div style="padding:3px 0;font-size:13px;">◆&nbsp; Are they eating? Using the bathroom normally?</div>
+              <div style="padding:3px 0;font-size:13px;">◆&nbsp; How do they look when they arrive in the morning?</div>
+            </div>
+            <div class="source-line">📋 NCF-SE 2023: observation is the first-line tool</div>
+            <span class="ts">10:17</span>
+          </div>
+        </div>
+
+        <!-- Escalate -->
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            <div class="sec-header" style="color:#c0392b;">🔴 If you see any of these — tell the Principal today:</div>
+            <div style="margin-top:5px;">
+              <div style="padding:3px 0;font-size:13px;display:flex;gap:5px;"><span>⚠</span><span>Physical marks — bruises or signs of injury</span></div>
+              <div style="padding:3px 0;font-size:13px;display:flex;gap:5px;"><span>⚠</span><span>Fear signs — flinching, jumping at sounds</span></div>
+              <div style="padding:3px 0;font-size:13px;display:flex;gap:5px;"><span>⚠</span><span>Stopped eating or eating very little</span></div>
+              <div style="padding:3px 0;font-size:13px;display:flex;gap:5px;"><span>⚠</span><span>Other students have said something to you</span></div>
+            </div>
+            <div style="margin-top:8px;padding-top:7px;border-top:1px solid #eee;">
+              <div style="font-size:13px;padding:3px 0;">📞 <strong>Manodarpan:</strong> 8448440632 (free, 24/7)</div>
+              <div style="font-size:13px;padding:3px 0;">📞 <strong>iCall (TISS):</strong> 9152987821</div>
+            </div>
+            <span class="ts">10:18</span>
+          </div>
+        </div>
+
+        <!-- Reassurance -->
+        <div class="msg-row bot">
+          <div class="bubble bot">
+            You noticed. That's already the most important step. 🙏<br><br>
+            🌱 <em>A teacher noticing = the strongest protective factor for a child in distress.</em><br><br>
+            Check back tomorrow — how did it go?
+            <span class="ts">10:19</span>
+          </div>
+        </div>
+
+        <!-- Follow-up buttons — all functional -->
+        <div class="reply-btns" id="q-followup-btns">
+          <button class="reply-btn" onclick="selectReply(this,'q-followup-btns','q-fu1-block')">I'll update you tomorrow</button>
+          <button class="reply-btn" onclick="selectReply(this,'q-followup-btns','q-fu2-block')">How do I talk to the Principal?</button>
+          <button class="reply-btn" onclick="selectReply(this,'q-followup-btns','q-fu3-block')">Share more context now</button>
+        </div>
+
+        <!-- Follow-up A: tomorrow confirmation -->
+        <div id="q-fu1-block" style="display:none">
+          <div class="msg-row user">
+            <div class="bubble user">I'll update you tomorrow<span class="ts">10:20</span></div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              Set! 💪 I'll check in with you tomorrow morning.<br><br>
+              In the meantime — act normal around the student. Just be warm and present. No pressure.
+              <div class="source-line">Reminder set for tomorrow · 8:00 AM</div>
+              <span class="ts">10:20</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Follow-up B: how to talk to Principal -->
+        <div id="q-fu2-block" style="display:none">
+          <div class="msg-row user">
+            <div class="bubble user">How do I talk to the Principal?<span class="ts">10:20</span></div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              <div class="sec-header">📋 A simple script that works:</div>
+              <div class="bullet-item"><span class="bk">1. State facts:</span><span>"I've noticed [student] seems withdrawn for about 2 weeks."</span></div>
+              <div class="bullet-item"><span class="bk">2. No labels:</span><span>Describe behavior only — don't diagnose or speculate.</span></div>
+              <div class="bullet-item"><span class="bk">3. Request:</span><span>"Can we check in with the family or counsellor?"</span></div>
+              <div class="bullet-item"><span class="bk">4. Document:</span><span>Write down the date + what you observed — keep a copy.</span></div>
+              <div class="source-line">POCSO Act · Child protection guidelines · NCF-SE 2023</div>
+              <span class="ts">10:21</span>
+            </div>
+          </div>
+          <div class="reply-btns">
+            <button class="reply-btn">Got it — I'll go today</button>
+            <button class="reply-btn">What if the Principal dismisses it?</button>
+          </div>
+        </div>
+
+        <!-- Follow-up C: share more context -->
+        <div id="q-fu3-block" style="display:none">
+          <div class="msg-row user">
+            <div class="bubble user">Share more context now<span class="ts">10:20</span></div>
+          </div>
+          <div class="msg-row bot">
+            <div class="bubble bot">
+              I'm here — tell me more. 🙏<br><br>
+              <strong>Is the withdrawal mostly in class, or also during lunch and recess?</strong>
+              <span class="ts">10:21</span>
+            </div>
+          </div>
+          <div class="reply-btns" id="q-fu3-btns">
+            <button class="reply-btn" onclick="selectReply(this,'q-fu3-btns','q-fu3-response')">Mostly in class</button>
+            <button class="reply-btn" onclick="selectReply(this,'q-fu3-btns','q-fu3-response')">All the time — even recess</button>
+            <button class="reply-btn" onclick="selectReply(this,'q-fu3-btns','q-fu3-response')">Hard to tell</button>
+          </div>
+          <div id="q-fu3-response" style="display:none">
+            <div class="msg-row bot">
+              <div class="bubble bot">
+                That detail matters. If it's mostly in class, something in the classroom dynamic may be the trigger — seating, a peer, or academic pressure. If it's everywhere, it's more likely something happening outside school.<br><br>
+                Either way, your next step is the same: <strong>observe for 3 more days, then talk to the Principal.</strong>
+                <div class="source-line">Based on PARAKH 2024 wellbeing indicators</div>
+                <span class="ts">10:22</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- q-response-block -->
+
+    </div><!-- s4-msgs -->
+
+  </div><!-- chat-area -->
+
+  <div class="input-bar">
+    <span class="input-emoji">☺</span>
+    <input class="input-field" placeholder="Message" readonly>
+    <div class="input-actions">📎 📷</div>
+    <button class="mic-btn">🎤</button>
+  </div>
+  <div class="home-indicator"><div class="home-bar"></div></div>
+
+  <!-- Form overlay -->
+  <div class="form-overlay" id="formOverlay">
+    <div class="form-sheet">
+      <div class="form-sheet-header">
+        <div class="form-sheet-avatar">S</div>
+        <div class="form-sheet-title">ShikshaBot Setup</div>
+        <button class="form-sheet-close" onclick="closeForm()">×</button>
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-field">
+        <label class="form-label">Which class do you teach?</label>
+        <select class="form-select" id="classSelect">
+          <option value="6-8">6 – 8 (Middle School)</option>
+          <option value="1-5">1 – 5 (Primary)</option>
+          <option value="9-10">9 – 10 (Secondary)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Main subject?</label>
+        <select class="form-select" id="subjectSelect">
+          <option value="science">Science</option>
+          <option value="math">Mathematics</option>
+          <option value="hindi">Hindi</option>
+          <option value="social">Social Science</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Preferred language for ShikshaBot?</label>
+        <select class="form-select" id="langSelect">
+          <option value="hindi">हिंदी (Hindi)</option>
+          <option value="english">English</option>
+          <option value="tamil">தமிழ் (Tamil)</option>
+          <option value="telugu">తెలుగు (Telugu)</option>
+        </select>
+      </div>
+      <div class="form-settings-note">Change anytime with /settings</div>
+      <button class="form-submit" onclick="submitForm()">✅ Let's Go!</button>
+      <div class="form-powered">POWERED BY WHATSAPP FLOWS</div>
+    </div>
+  </div>
+
+</div><!-- phone-inner -->
+</div><!-- phone-outer -->
+
+<script>
+let userProfile = {classVal:'6-8', subject:'science', lang:'hindi'};
+let feedbackAnswers = {q1:'', q2:'', q3:''};
+
+const screens = {
+  s1:{ label:'FLOW 1: ONBOARDING',      time:'9:00'  },
+  s2:{ label:'FLOW 2: LESSON PLAN',      time:'10:07' },
+  s3:{ label:'FLOW 3: SESSION FEEDBACK', time:'10:40' },
+  s4:{ label:'FLOW 4: TEACHER QUERY',    time:'10:14' },
+};
+const screenOrder = ['s1','s2','s3','s4'];
+
+function showScreen(id){
+  document.querySelectorAll('.screen-section').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.step-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id+'-msgs').classList.add('active');
+  const btns = document.querySelectorAll('.step-nav button');
+  const idx  = screenOrder.indexOf(id);
+  if(btns[idx]) btns[idx].classList.add('active');
+  document.getElementById('screenLabel').textContent = screens[id].label;
+  document.getElementById('statusTime').textContent  = screens[id].time;
+  document.getElementById('chat').scrollTop = 0;
+  if(id==='s2') updateLessonPlan();
+}
+
+/* ── Lesson plan: set correct variant + teacher request bubble ── */
+function updateLessonPlan(){
+  const isMath = userProfile.subject==='math';
+  document.querySelectorAll('.lp-variant').forEach(el=>el.style.display='none');
+  document.getElementById(isMath?'lp-math':'lp-science').style.display='block';
+  const clsMap = {'1-5':'5','6-8':'8','9-10':'9'};
+  const cls = clsMap[userProfile.classVal]||'8';
+  const subMap = {science:"Science Ch.13 Why Do We Fall Ill",math:"Maths Algebraic Expressions",hindi:"Hindi Poetry lesson",social:"Social Sc. Democracy"};
+  const sub = subMap[userProfile.subject]||'Science';
+  document.getElementById('lp-teacher-request').innerHTML =
+    `🎙 Class ${cls} ${sub} — 45 min plan<span class="ts">10:07</span>`;
+}
+
+/* ── Onboarding form ── */
+function openForm(){ document.getElementById('formOverlay').classList.add('open'); }
+function closeForm(){ document.getElementById('formOverlay').classList.remove('open'); }
+
+function submitForm(){
+  userProfile.classVal = document.getElementById('classSelect').value;
+  userProfile.subject  = document.getElementById('subjectSelect').value;
+  userProfile.lang     = document.getElementById('langSelect').value;
+  closeForm();
+
+  const clsLabel  = {'1-5':'1–5 (Primary)','6-8':'6–8 (Middle)','9-10':'9–10 (Secondary)'};
+  const subjLabel = {science:'Science',math:'Mathematics',hindi:'Hindi',social:'Social Science'};
+  const langLabel = {hindi:'हिंदी (Hindi)',english:'English',tamil:'தமிழ்',telugu:'తెలుగు'};
+
+  document.getElementById('reg-class-display').textContent   = clsLabel[userProfile.classVal]||userProfile.classVal;
+  document.getElementById('reg-subject-display').textContent = subjLabel[userProfile.subject]||userProfile.subject;
+  document.getElementById('reg-lang-display').textContent    = langLabel[userProfile.lang]||userProfile.lang;
+
+  const isEng = userProfile.lang==='english';
+  document.getElementById('reg-headline').textContent = isEng ? "You're all set!" : "आप registered हैं!";
+  const pb = document.getElementById('reg-prompt-bubble');
+  pb.innerHTML = isEng
+    ? `You're all set! 🌱<br><br><strong>What topic are you teaching this week?</strong><br><span style="font-size:11.5px;color:#888;">e.g. "Ch.7 Fractions" or "Why Do We Fall Ill"</span><span class="ts">9:02</span>`
+    : `अब आप तैयार हैं! 🌱<br><br><strong>इस हफ्ते कौन सा topic पढ़ाना है?</strong><br><span style="font-size:11.5px;color:#888;">जैसे: "भिन्न Chapter 7" या "Why Do We Fall Ill"</span><span class="ts">9:02</span>`;
+
+  document.getElementById('s1-initial').style.display='none';
+  document.getElementById('s1-reg').style.display='block';
+
+  const typing=document.getElementById('reg-typing'), prompt=document.getElementById('reg-prompt'), cta=document.getElementById('reg-cta');
+  typing.style.display='flex'; prompt.style.display='none'; cta.style.display='none';
+  scrollChat();
+  setTimeout(()=>{
+    typing.style.display='none'; prompt.style.display='flex'; scrollChat();
+    setTimeout(()=>{ cta.style.display='block'; scrollChat(); }, 400);
+  }, 1600);
+}
+
+/* ── Screen 4 clarify buttons ── */
+function clarifyQ4(btn, answer) {
+  var btns = document.querySelectorAll('#q-clarify-btns .reply-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].disabled = true;
+    btns[i].style.opacity = '0.5';
+  }
+  btn.classList.add('selected');
+  btn.style.opacity = '1';
+  var echo = document.getElementById('q-echo-bubble');
+  if (echo) echo.innerHTML = answer + '<span class="ts">10:15</span>';
+  setTimeout(function() {
+    var r = document.getElementById('q-response-block');
+    if (r) { r.style.display = 'block'; }
+    var c = document.getElementById('chat');
+    if (c) { setTimeout(function(){ c.scrollTop = c.scrollHeight; }, 50); }
+  }, 300);
+}
+
+/* ── Generic reply button handler ── */
+function selectReply(btn, groupId, nextId){
+  document.querySelectorAll(`#${groupId} .reply-btn`).forEach(b=>{ b.disabled=true; b.style.opacity=.5; });
+  btn.classList.add('selected'); btn.style.opacity=1;
+  setTimeout(()=>{
+    const next=document.getElementById(nextId);
+    if(next){ next.style.display='block'; scrollChat(); }
+  }, 300);
+}
+
+/* ── Feedback: store answer + trigger insight after Q3 ── */
+function storeFB(q, btn, groupId, nextId){
+  feedbackAnswers[q] = btn.textContent.trim();
+  selectReply(btn, groupId, nextId);
+  if(q==='q3') generateFeedbackInsight();
+}
+
+function generateFeedbackInsight(){
+  // Dynamic teacher summary
+  const sumEl = document.getElementById('fb-teacher-summary');
+  if(sumEl) sumEl.innerHTML =
+    `✓ ${feedbackAnswers.q1} &nbsp;·&nbsp; ${feedbackAnswers.q2} &nbsp;·&nbsp; SEL: ${feedbackAnswers.q3}<span class="ts">10:44</span>`;
+
+  // Adaptive insight text
+  let insight='';
+  if(feedbackAnswers.q3.includes('opened up')){
+    insight='Students opening up in SEL check-ins is a strong signal. When this happens, engagement typically stays higher throughout the lesson. Keep this routine consistent — it compounds over weeks.';
+  } else if(feedbackAnswers.q3.includes('Neutral')){
+    insight='Neutral is completely normal at first. Try a "0–10 number" check-in next time — it\'s faster, less intimidating, and students usually respond more. After 3 consistent sessions, most groups open up.';
+  } else {
+    insight='No worries — even 3 deep breaths together counts as a check-in. The "0–10 number" version takes just 30 seconds. Building the habit matters more than the depth on any single day.';
+  }
+  document.getElementById('fb-insight-text').textContent = insight;
+
+  // Animate: typing → insight → buttons
+  const typing=document.getElementById('fb-typing'), final=document.getElementById('fb-final'), fbtns=document.getElementById('fb-final-btns');
+  typing.style.display='flex'; final.style.display='none'; if(fbtns) fbtns.style.display='none';
+  scrollChat();
+  setTimeout(()=>{
+    typing.style.display='none'; final.style.display='flex'; scrollChat();
+    setTimeout(()=>{ if(fbtns){ fbtns.style.display='flex'; scrollChat(); } }, 400);
+  }, 1800);
+}
+
+function scrollChat(){
+  const c=document.getElementById('chat');
+  setTimeout(()=>c.scrollTop=c.scrollHeight, 100);
+}
+</script>
+</body>
+</html>
