@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Padhai — AI Teaching Assistant for NCERT Classrooms</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a2e;
+      background: #ffffff;
+      line-height: 1.6;
+    }
+
+    /* ── Nav ── */
+    nav {
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; color: #2d6a4f; letter-spacing: -0.5px; }
+    .logo span { color: #52b788; }
+    nav a {
+      text-decoration: none;
+      color: #555;
+      font-size: 0.9rem;
+      margin-left: 32px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 780px;
+      margin: 80px auto 60px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: #d8f3dc;
+      color: #2d6a4f;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #1a1a2e;
+      margin-bottom: 20px;
+    }
+    h1 em { font-style: normal; color: #2d6a4f; }
+    .hero p {
+      font-size: 1.15rem;
+      color: #555;
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: #2d6a4f;
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    /* ── Features ── */
+    .section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+    .section-label {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #52b788;
+      margin-bottom: 12px;
+    }
+    .section h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 48px;
+      color: #1a1a2e;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: #f8fdf9;
+      border: 1px solid #e8f5e9;
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .card-icon {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1a1a2e;
+    }
+    .card p {
+      font-size: 0.92rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ── SEL section ── */
+    .sel-section {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 64px 24px;
+    }
+    .sel-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .sel-section .section-label { color: #74c69d; }
+    .sel-section h2 { color: #fff; text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 16px; }
+    .sel-section .sub {
+      text-align: center;
+      color: #aaa;
+      font-size: 1rem;
+      max-width: 620px;
+      margin: 0 auto 48px;
+    }
+    .sel-dims {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .sel-dim {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    .sel-dim .icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .sel-dim h4 { font-size: 0.95rem; font-weight: 600; color: #d8f3dc; margin-bottom: 6px; }
+    .sel-dim p { font-size: 0.82rem; color: #999; line-height: 1.5; }
+
+    /* ── How it works ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .step { text-align: center; padding: 20px; }
+    .step-num {
+      width: 40px; height: 40px;
+      background: #2d6a4f;
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      margin: 0 auto 14px;
+    }
+    .step h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+    .step p { font-size: 0.85rem; color: #666; }
+
+    /* ── Languages ── */
+    .langs {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .lang-pill {
+      background: #f0faf3;
+      border: 1px solid #b7e4c7;
+      color: #2d6a4f;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 24px;
+      font-size: 0.95rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid #f0f0f0;
+      padding: 32px 48px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #999;
+    }
+    footer a { color: #2d6a4f; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      nav { padding: 16px 20px; }
+      nav a { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">Pad<span>hai</span></div>
+    <div>
+      <a href="#features">Features</a>
+      <a href="#sel">SEL</a>
+      <a href="#how">How it works</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">For Government School Teachers</div>
+    <h1>Your AI teaching assistant<br>for <em>NCERT classrooms</em></h1>
+    <p>
+      Padhai helps teachers create lesson plans, answer curriculum questions,
+      and support student wellbeing — all over WhatsApp, in their preferred language.
+    </p>
+    <a class="hero-cta" href="#how">See how it works</a>
+  </div>
+
+  <!-- Features -->
+  <div class="section" id="features">
+    <div class="section-label">What Padhai does</div>
+    <h2>Everything a teacher needs, instantly</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">📚</div>
+        <h3>NCERT-Aligned Lesson Plans</h3>
+        <p>
+          Generate complete, structured lesson plans for any class and subject —
+          mapped to the exact NCERT textbook for that grade, not generic content.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h3>SEL-Integrated Content</h3>
+        <p>
+          Every lesson plan weaves in a Social-Emotional Learning dimension —
+          self-awareness, empathy, responsible decision-making — so academic
+          and emotional growth happen together.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">❓</div>
+        <h3>Curriculum Q&amp;A</h3>
+        <p>
+          Ask any question about the syllabus, a concept, or how to explain
+          a topic — get a clear, grade-appropriate answer in seconds.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤝</div>
+        <h3>Student Support Guidance</h3>
+        <p>
+          Get practical suggestions for students who are disengaged, struggling,
+          or facing emotional challenges in the classroom.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>Works on WhatsApp</h3>
+        <p>
+          No app to download. Teachers use the phone they already have.
+          Padhai works entirely over WhatsApp in a simple chat interface.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>Multilingual</h3>
+        <p>
+          Full support for English, Hindi, Tamil, and Telugu — teachers choose
+          their language once and all responses come in that language.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEL section -->
+  <div class="sel-section" id="sel">
+    <div class="sel-inner">
+      <div class="section-label">Social-Emotional Learning</div>
+      <h2>Academic content with a human core</h2>
+      <p class="sub">
+        Research shows that SEL improves student outcomes, attendance, and classroom climate.
+        Padhai embeds one SEL dimension into every lesson plan — without adding work for the teacher.
+      </p>
+      <div class="sel-dims">
+        <div class="sel-dim">
+          <div class="icon">🪞</div>
+          <h4>Self-Awareness</h4>
+          <p>Recognising emotions, strengths, and values</p>
+        </div>
+        <div class="sel-dim">
+          <div class="icon">⚙️</div>
+          <h4>Self-Management</h4>
+          <p>Regulating emotions and setting goals</p>
+        </div>
+        <div class="sel-dim">
+          <div class="icon">💛</div>
+          <h4>Social Awareness</h4>
+          <p>Empathy and understanding others' perspectives</p>
+        </div>
+        <div class="sel-dim">
+          <div class="icon">🤲</div>
+          <h4>Relationship Skills</h4>
+          <p>Communicating, cooperating, and resolving conflict</p>
+        </div>
+        <div class="sel-dim">
+          <div class="icon">✅</div>
+          <h4>Responsible Decision-Making</h4>
+          <p>Evaluating consequences and acting ethically</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="section" id="how">
+    <div class="section-label">How it works</div>
+    <h2>Up and running in minutes</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Message the number</h4>
+        <p>Send any message to the Padhai WhatsApp number to get started.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Choose your language</h4>
+        <p>Pick English, Hindi, Tamil, or Telugu — all responses come in that language.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Ask anything</h4>
+        <p>"Class 8 Science lesson on photosynthesis" — get a full plan in seconds.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h4>Teach better</h4>
+        <p>Use the plan as-is or adapt it. It's your assistant, not a replacement.</p>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top: 48px;">
+      <p style="color:#666; font-size:0.95rem; margin-bottom:16px;">Available in</p>
+      <div class="langs">
+        <span class="lang-pill">English</span>
+        <span class="lang-pill">हिंदी</span>
+        <span class="lang-pill">தமிழ்</span>
+        <span class="lang-pill">తెలుగు</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Padhai — AI-powered teaching support for government school teachers across India.</p>
+    <p style="margin-top:8px;">© 2026 Padhai. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
